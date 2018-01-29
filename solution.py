@@ -1,17 +1,18 @@
 
 from utils import *
-import itertools
 
 
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
+cols_rev = cols[::-1]
 
+# TODO: Update the unitlist to add the diagonal units
 
-# diagonal Units
-d1 = [s+t for s,t in zip(rows,cols)]
-d2 = [s+t for s,t in zip(rows,cols[::-1])]
-unitlist = row_units + column_units + square_units + [d1,d2]
+diagonal_unit = [[rows[t]+cols[t] for t in range(len(rows))]]
+diagonal_reverse_unit = [[rows[t]+cols_rev[t] for t in range(len(rows))]]
+
+unitlist = row_units + column_units + square_units + diagonal_unit + diagonal_reverse_unit
 
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
@@ -60,7 +61,6 @@ def naked_twins(values):
                                         values[box] = values[box].replace(digit,'')
     # make all possible combinations    
     return values
-    raise NotImplementedError
 
 
 def eliminate(values):
@@ -87,7 +87,6 @@ def eliminate(values):
             values[peer] = values[peer].replace(val,'')
     return values
 
-    raise NotImplementedError
 
 
 def only_choice(values):
@@ -115,9 +114,9 @@ def only_choice(values):
             dplaces = [box for box in unit if digit in values[box]]
             if len(dplaces) == 1:
                 values[dplaces[0]] = digit
+                values = assign_value(values, dplaces[0],digit)
     return values
 
-    raise NotImplementedError
 
 
 def reduce_puzzle(values):
@@ -142,6 +141,9 @@ def reduce_puzzle(values):
         values = eliminate(values)
         # Use the Only Choice Strategy
         values = only_choice(values)
+        # Naked Twins application
+        values = naked_twins(values)
+        
         # Checks how many boxes have a determined value, to compare
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         # If no new values were added, stops the loop.
@@ -151,7 +153,6 @@ def reduce_puzzle(values):
             return False
     return values
 
-    raise NotImplementedError
 
 
 def search(values):
@@ -194,7 +195,6 @@ def search(values):
         attempt = search(new_sudoku)
         if attempt:
             return attempt
-    raise NotImplementedError
 
 
 def solve(grid):
